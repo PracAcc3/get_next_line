@@ -6,7 +6,7 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 14:18:16 by synoshah          #+#    #+#             */
-/*   Updated: 2025/08/28 20:43:41 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/08/29 22:17:58 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,18 @@
 
 static char	*read_stash(int fd, char *stash)
 {
-    char buf[BUFFER_SIZE];
+	char	buf[BUFFER_SIZE];
 
-    BUFFER_SIZE + 1;
+	BUFFER_SIZE + 1;
 }
 
 char	*get_next_line(int fd)
 {
 	static char *stash[1024];
 	char *line;
+
+	if (BUFFER_SIZE <= 0 || fd < 0 || read(fd, line, 0) < 0)
+		return (NULL);
 
 	// [BLOCK 1: Validate inputs and BUFFER_SIZE]
 	// [BLOCK 2: Call helper to read into stash[fd] until '\n' or EOF]
