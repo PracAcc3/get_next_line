@@ -6,59 +6,32 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 14:18:16 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/13 19:20:08 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/09/13 19:40:26 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*append_buffer_and_free(char *saved_text, char *buffer)
+static size_t	get_line_length(char *saved_text)
 {
-	char	*combined_text;
+	char	*newline_pos;
 
-	if (!buffer || !*buffer)
-		return (saved_text);
+	newline_pos = ft_strchr(saved_text, '\n');
+	if (newline_pos)
+		return (newline_pos - saved_text + 1);
+	return (ft_strlen(saved_text));
+}
+
+static char	*append_saved_text(char *saved_text, char *buffer)
+{
+	char	*temp;
+
 	if (!saved_text)
-		return (ft_strdup(buffer));
-	combined_text = alt_strjoin(saved_text, buffer);
+		temp = ft_strdup(buffer);
+	else
+		temp = alt_strjoin(saved_text, buffer);
 	free(saved_text);
-	return (combined_text);
-}
-
-static char	*extract_line_from_saved_text(char *saved_text)
-{
-	char	*newline_position;
-	char	*line;
-	size_t	line_length;
-
-	if (!saved_text || !*saved_text)
-		return (NULL);
-	newline_position = ft_strchr(saved_text, '\n');
-	if (newline_position)
-		line_length = newline_position - saved_text + 1;
-	else
-		line_length = ft_strlen(saved_text);
-	line = malloc(line_length + 1);
-	if (!line)
-		return (NULL);
-	ft_strlcpy(line, saved_text, line_length + 1);
-	return (line);
-}
-
-static void	update_saved_text(char **saved_text)
-{
-	char	*newline_position;
-	char	*remaining_text;
-
-	if (!*saved_text)
-		return ;
-	newline_position = ft_strchr(*saved_text, '\n');
-	if (!newline_position || !*(newline_position + 1))
-		remaining_text = NULL;
-	else
-		remaining_text = ft_strdup(newline_position + 1);
-	free(*saved_text);
-	*saved_text = remaining_text;
+	return (temp);
 }
 
 static char	*read_file_and_append(int fd, char *saved_text)
@@ -78,12 +51,40 @@ static char	*read_file_and_append(int fd, char *saved_text)
 		buffer[bytes_read] = '\0';
 		if (bytes_read > 0)
 		{
-			saved_text = append_buffer_and_free(saved_text, buffer);
+			saved_text = append_saved_text(saved_text, buffer);
 			if (!saved_text)
 				return (NULL);
 		}
 	}
 	return (saved_text);
+}
+
+static char	*get_line_and_update_saved(char **saved_text)
+{
+	char	*newline_pos;
+	char	*line;
+	size_t	line_len;
+	char	*rest;
+
+	if (!*saved_text || !**saved_text)
+		return (NULL);
+	line_len = get_line_length(*saved_text);
+	line = malloc(line_len + 1);
+	if (!line)
+	{
+		free(*saved_text);
+		*saved_text = NULL;
+		return (NULL);
+	}
+	ft_strlcpy(line, *saved_text, line_len + 1);
+	newline_pos = ft_strchr(*saved_text, '\n');
+	if (newline_pos && *(newline_pos + 1))
+		rest = ft_strdup(newline_pos + 1);
+	else
+		rest = NULL;
+	free(*saved_text);
+	*saved_text = rest;
+	return (line);
 }
 
 char	*get_next_line(int fd)
@@ -100,13 +101,6 @@ char	*get_next_line(int fd)
 		saved_text = NULL;
 		return (NULL);
 	}
-	line = extract_line_from_saved_text(saved_text);
-	if (!line)
-	{
-		free(saved_text);
-		saved_text = NULL;
-		return (NULL);
-	}
-	update_saved_text(&saved_text);
+	line = get_line_and_update_saved(&saved_text);
 	return (line);
 }
