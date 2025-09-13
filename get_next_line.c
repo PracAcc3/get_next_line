@@ -6,84 +6,107 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 14:18:16 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/13 17:34:04 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/09/13 19:20:08 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*join_and_free(char *stash, char *buf)
+static char	*append_buffer_and_free(char *saved_text, char *buffer)
 {
-	char	*tmp;
+	char	*combined_text;
 
-	if (!stash)
-		return (ft_strdup(buf));
-	tmp = alt_strjoin(stash, buf);
-	free(stash);
-	return (tmp);
+	if (!buffer || !*buffer)
+		return (saved_text);
+	if (!saved_text)
+		return (ft_strdup(buffer));
+	combined_text = alt_strjoin(saved_text, buffer);
+	free(saved_text);
+	return (combined_text);
 }
 
-/* Helper function: extract one line from stash */
-static char	*extract_line(char **stash)
+static char	*extract_line_from_saved_text(char *saved_text)
 {
+	char	*newline_position;
 	char	*line;
-	char	*nl;
-	size_t	len;
-	char	*tmp;
+	size_t	line_length;
 
-	if (!*stash || !**stash)
+	if (!saved_text || !*saved_text)
 		return (NULL);
-	nl = ft_strchr(*stash, '\n');
-	len = nl ? nl - *stash + 1 : ft_strlen(*stash);
-	line = (char *)malloc(len + 1);
+	newline_position = ft_strchr(saved_text, '\n');
+	if (newline_position)
+		line_length = newline_position - saved_text + 1;
+	else
+		line_length = ft_strlen(saved_text);
+	line = malloc(line_length + 1);
 	if (!line)
 		return (NULL);
-	ft_strlcpy(line, *stash, len + 1);
-	/* Update stash */
-	if (nl)
-	{
-		tmp = ft_strdup(nl + 1);
-		free(*stash);
-		*stash = tmp;
-	}
-	else
-	{
-		free(*stash);
-		*stash = NULL;
-	}
+	ft_strlcpy(line, saved_text, line_length + 1);
 	return (line);
 }
 
-/* Helper function: read from fd and join to stash */
-static char	*read_and_join(int fd, char *stash)
+static void	update_saved_text(char **saved_text)
 {
-	char	buf[BUFFER_SIZE + 1];
-	ssize_t	r;
+	char	*newline_position;
+	char	*remaining_text;
 
-	while (!ft_strchr(stash, '\n'))
-	{
-		r = read(fd, buf, BUFFER_SIZE);
-		if (r <= 0)
-			break ;
-		buf[r] = '\0';
-		stash = join_and_free(stash, buf);
-		if (!stash)
-			return (NULL);
-	}
-	return (stash);
+	if (!*saved_text)
+		return ;
+	newline_position = ft_strchr(*saved_text, '\n');
+	if (!newline_position || !*(newline_position + 1))
+		remaining_text = NULL;
+	else
+		remaining_text = ft_strdup(newline_position + 1);
+	free(*saved_text);
+	*saved_text = remaining_text;
 }
 
-/* Main function */
+static char	*read_file_and_append(int fd, char *saved_text)
+{
+	char	buffer[BUFFER_SIZE + 1];
+	ssize_t	bytes_read;
+
+	bytes_read = 1;
+	while (!ft_strchr(saved_text, '\n') && bytes_read > 0)
+	{
+		bytes_read = read(fd, buffer, BUFFER_SIZE);
+		if (bytes_read < 0)
+		{
+			free(saved_text);
+			return (NULL);
+		}
+		buffer[bytes_read] = '\0';
+		if (bytes_read > 0)
+		{
+			saved_text = append_buffer_and_free(saved_text, buffer);
+			if (!saved_text)
+				return (NULL);
+		}
+	}
+	return (saved_text);
+}
+
 char	*get_next_line(int fd)
 {
-	static char	*stash;
+	static char	*saved_text;
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	stash = read_and_join(fd, stash);
-	if (!stash)
+	saved_text = read_file_and_append(fd, saved_text);
+	if (!saved_text || !*saved_text)
+	{
+		free(saved_text);
+		saved_text = NULL;
 		return (NULL);
-	line = extract_line(&stash);
+	}
+	line = extract_line_from_saved_text(saved_text);
+	if (!line)
+	{
+		free(saved_text);
+		saved_text = NULL;
+		return (NULL);
+	}
+	update_saved_text(&saved_text);
 	return (line);
 }
