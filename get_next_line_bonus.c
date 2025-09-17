@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/26 14:18:16 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/17 17:50:15 by synoshah         ###   ########.fr       */
+/*   Created: 2025/09/17 13:26:46 by synoshah          #+#    #+#             */
+/*   Updated: 2025/09/17 15:39:29 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,13 +24,14 @@ static size_t	get_line_length(char *saved)
 
 static char	*append_saved(char *saved, char *buf)
 {
-	char	*tmp;
+	char	*temp;
 
-	if (!saved)
-		return (ft_strdup(buf));
-	tmp = ft_strjoin(saved, buf);
+	if (saved == NULL)
+		temp = ft_strdup(buf);
+	else
+		temp = ft_strjoin(saved, buf);
 	free(saved);
-	return (tmp);
+	return (temp);
 }
 
 static char	*read_file_and_append(int fd, char *saved)
@@ -39,20 +40,18 @@ static char	*read_file_and_append(int fd, char *saved)
 	ssize_t	bytes_read;
 
 	bytes_read = 1;
-	while (!ft_strchr(saved, '\n') && bytes_read > 0)
+	while (ft_strchr(saved, '\n') == NULL && bytes_read > 0)
 	{
 		bytes_read = read(fd, buf, BUFFER_SIZE);
 		if (bytes_read < 0)
 		{
-			free(saved);
+			if (saved != NULL)
+				free(saved);
 			return (NULL);
 		}
-		if (bytes_read == 0)
-			break ;
 		buf[bytes_read] = '\0';
-		saved = append_saved(saved, buf);
-		if (!saved)
-			return (NULL);
+		if (bytes_read > 0)
+			saved = append_saved(saved, buf);
 	}
 	return (saved);
 }
@@ -83,14 +82,14 @@ static char	*get_line_and_update_saved(char **saved)
 
 char	*get_next_line(int fd)
 {
-	static char	*saved;
+	static char	*saved_text[10240];
 	char		*line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || fd >= 10240 || BUFFER_SIZE <= 0)
 		return (NULL);
-	saved = read_file_and_append(fd, saved);
-	if (saved == NULL)
+	saved_text[fd] = read_file_and_append(fd, saved_text[fd]);
+	if (saved_text[fd] == NULL)
 		return (NULL);
-	line = get_line_and_update_saved(&saved);
+	line = get_line_and_update_saved(&saved_text[fd]);
 	return (line);
 }

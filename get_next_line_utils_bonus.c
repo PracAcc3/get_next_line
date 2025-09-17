@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*   get_next_line_utils_bonus.c                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/26 14:18:19 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/17 17:43:35 by synoshah         ###   ########.fr       */
+/*   Created: 2025/09/17 13:26:33 by synoshah          #+#    #+#             */
+/*   Updated: 2025/09/17 17:46:48 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,13 +44,13 @@ char	*ft_strdup(const char *s)
 	return (dup);
 }
 
-char	*ft_strchr(const char *s, int c)
+char	*ft_strchr(const char *s, char c)
 {
-	if (!s)
+	if (s == NULL)
 		return (NULL);
 	while (*s)
 	{
-		if (*s == (char)c)
+		if (*s == c)
 			return ((char *)s);
 		s++;
 	}
@@ -88,7 +88,7 @@ char	*ft_strjoin(const char *s1, const char *s2)
 	len1 = ft_strlen(s1);
 	len2 = ft_strlen(s2);
 	new_string = malloc(len1 + len2 + 1);
-	if (!new_string)
+	if (new_string == NULL)
 		return (NULL);
 	i = 0;
 	while (*s1)
