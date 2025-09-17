@@ -6,7 +6,7 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/17 13:26:33 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/17 17:46:48 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/09/17 18:39:09 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ char	*ft_strdup(const char *s)
 	return (dup);
 }
 
-char	*ft_strchr(const char *s, char c)
+char	*ft_strchr(const char *s, int c)
 {
 	if (s == NULL)
 		return (NULL);
