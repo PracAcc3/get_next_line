@@ -6,91 +6,103 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 14:18:16 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/17 17:50:15 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/09/18 19:41:41 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static size_t	get_line_length(char *saved)
+static size_t	line_len(char *s)
 {
-	char	*newline_pos;
+	size_t	len;
 
-	newline_pos = ft_strchr(saved, '\n');
-	if (newline_pos)
-		return (newline_pos - saved + 1);
-	return (ft_strlen(saved));
+	len = 0;
+	while (s[len] && s[len] != '\n')
+		len++;
+	if (s[len] == '\n')
+		len++;
+	return (len);
 }
 
-static char	*append_saved(char *saved, char *buf)
+static char	*make_line(char *stash)
 {
-	char	*tmp;
+	size_t	len;
+	size_t	i;
+	char	*line;
 
-	if (!saved)
-		return (ft_strdup(buf));
-	tmp = ft_strjoin(saved, buf);
-	free(saved);
-	return (tmp);
+	len = line_len(stash);
+	line = malloc(len + 1);
+	if (!line)
+		return (NULL);
+	i = 0;
+	while (i < len)
+	{
+		line[i] = stash[i];
+		i++;
+	}
+	line[i] = '\0';
+	return (line);
 }
 
-static char	*read_file_and_append(int fd, char *saved)
+static char	*read_fd(int fd, char *stash)
 {
 	char	buf[BUFFER_SIZE + 1];
 	ssize_t	bytes_read;
 
 	bytes_read = 1;
-	while (!ft_strchr(saved, '\n') && bytes_read > 0)
+	while (ft_strchr(stash, '\n') == NULL)
 	{
 		bytes_read = read(fd, buf, BUFFER_SIZE);
 		if (bytes_read < 0)
-		{
-			free(saved);
-			return (NULL);
-		}
+			return (free(stash), NULL);
 		if (bytes_read == 0)
 			break ;
 		buf[bytes_read] = '\0';
-		saved = append_saved(saved, buf);
-		if (!saved)
+		stash = ft_strjoin(stash, buf);
+		if (stash == NULL)
 			return (NULL);
 	}
-	return (saved);
+	return (stash);
 }
 
-static char	*get_line_and_update_saved(char **saved)
+static char	*cut_stash(char *stash)
 {
-	char	*line;
+	size_t	len;
+	size_t	i;
 	char	*rest;
-	size_t	line_len;
-	char	*newline_pos;
 
-	if (*saved == NULL)
+	i = 0;
+	len = line_len(stash);
+	if (stash[len] == '\0')
 		return (NULL);
-	line_len = get_line_length(*saved);
-	line = malloc(line_len + 1);
-	if (line == NULL)
-		return (free(*saved), *saved = NULL, NULL);
-	ft_strlcpy(line, *saved, line_len + 1);
-	newline_pos = ft_strchr(*saved, '\n');
-	if (newline_pos != NULL && *(newline_pos + 1) != '\0')
-		rest = ft_strdup(newline_pos + 1);
-	else
-		rest = NULL;
-	free(*saved);
-	*saved = rest;
-	return (line);
+	rest = malloc(ft_strlen(stash + len) + 1);
+	if (rest == NULL)
+		return (NULL);
+	while (stash[len + i])
+	{
+		rest[i] = stash[len + i];
+		i++;
+	}
+	rest[i] = '\0';
+	return (rest);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*saved;
+	static char	*stash;
 	char		*line;
+	char		*next;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	saved = read_file_and_append(fd, saved);
-	if (saved == NULL)
-		return (NULL);
-	line = get_line_and_update_saved(&saved);
+	stash = read_fd(fd, stash);
+	if (stash == NULL)
+		return (free(stash), stash = NULL, NULL);
+	line = make_line(stash);
+	if (line == NULL)
+		return (free(stash), stash = NULL, NULL);
+	next = cut_stash(stash);
+	free(stash);
+	stash = next;
 	return (line);
 }
