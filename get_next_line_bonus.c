@@ -6,7 +6,7 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/17 13:26:46 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/18 19:43:49 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/09/21 18:41:45 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ static char	*make_line(char *stash)
 	return (line);
 }
 
-static char	*read_and_join_fd(int fd, char *stash)
+static char	*read_fd(int fd, char *stash)
 {
 	char	buf[BUFFER_SIZE + 1];
 	ssize_t	bytes_read;
@@ -59,8 +59,6 @@ static char	*read_and_join_fd(int fd, char *stash)
 			break ;
 		buf[bytes_read] = '\0';
 		stash = ft_strjoin(stash, buf);
-		if (stash == NULL)
-			return (NULL);
 	}
 	return (stash);
 }
@@ -95,7 +93,7 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || fd >= 10240 || BUFFER_SIZE <= 0)
 		return (NULL);
-	stash[fd] = read_and_join_fd(fd, stash[fd]);
+	stash[fd] = read_fd(fd, stash[fd]);
 	if (stash[fd] == NULL)
 		return (NULL);
 	line = make_line(stash[fd]);

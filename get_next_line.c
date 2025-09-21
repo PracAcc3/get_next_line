@@ -6,7 +6,7 @@
 /*   By: synoshah <synoshah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 14:18:16 by synoshah          #+#    #+#             */
-/*   Updated: 2025/09/18 19:41:41 by synoshah         ###   ########.fr       */
+/*   Updated: 2025/09/21 21:23:44 by synoshah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,6 @@ static char	*read_fd(int fd, char *stash)
 			break ;
 		buf[bytes_read] = '\0';
 		stash = ft_strjoin(stash, buf);
-		if (stash == NULL)
-			return (NULL);
 	}
 	return (stash);
 }
@@ -97,7 +95,7 @@ char	*get_next_line(int fd)
 		return (NULL);
 	stash = read_fd(fd, stash);
 	if (stash == NULL)
-		return (free(stash), stash = NULL, NULL);
+		return (NULL);
 	line = make_line(stash);
 	if (line == NULL)
 		return (free(stash), stash = NULL, NULL);
